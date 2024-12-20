@@ -9,7 +9,7 @@ based58==0.1.1
 black==23.11.0
 borsh-construct==0.1.0
 cachetools==4.2.4
-certifi==2023.7.22
+certifi==2024.7.4
 charset-normalizer==3.3.2
 click==8.1.7
 construct==2.10.68
