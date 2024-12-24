@@ -88,8 +88,43 @@ pub mod merkle_distributor {
     }
 
     #[allow(clippy::result_large_err)]
+    pub fn claim_new_claim(
+        ctx: Context<ClaimNewClaim>,
+        _page_index: u8,
+    ) -> Result<()> {
+        handle_claim_new_claim(ctx)
+    }
+
+    #[allow(clippy::result_large_err)]
+    pub fn admin_new_claim(
+        ctx: Context<AdminNewClaim>,
+        amount_unlocked: u64,
+        amount_locked: u64,
+        page_index: u8,
+        claimant: Pubkey,
+    ) -> Result<()> {
+        handle_admin_new_claim(ctx, amount_unlocked, amount_locked, page_index, claimant)
+    }
+
+    #[allow(clippy::result_large_err)]
+    pub fn admin_remove_new_claim(
+        ctx: Context<RemoveNewClaim>,
+        amount_unlocked: u64,
+        amount_locked: u64,
+        proof: Vec<[u8; 32]>,
+        claimant: Pubkey,
+    ) -> Result<()> {
+        handle_admin_remove_new_claim(ctx, amount_unlocked, amount_locked, proof, claimant)
+    }
+
+    #[allow(clippy::result_large_err)]
     pub fn claim_locked(ctx: Context<ClaimLocked>) -> Result<()> {
         handle_claim_locked(ctx)
+    }
+
+    #[allow(clippy::result_large_err)]
+    pub fn admin_remove_claim(ctx: Context<RemoveLocked>, claimant: Pubkey) -> Result<()> {
+        handle_admin_remove_claim(ctx, claimant)
     }
 
     #[allow(clippy::result_large_err)]

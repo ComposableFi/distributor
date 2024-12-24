@@ -1,8 +1,28 @@
 use anchor_lang::{event, prelude::*};
 
+#[event]
+pub struct AdminNewClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+
+    pub amount_unlocked: u64,
+    pub amount_locked: u64,
+}
+
 /// Emitted when a new claim is created.
 #[event]
 pub struct NewClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+}
+
+/// Emitted when a new claim is created.
+#[event]
+pub struct ClaimNewClaimEvent {
     /// User that claimed.
     pub claimant: Pubkey,
     /// Timestamp.
@@ -15,5 +35,23 @@ pub struct ClaimedEvent {
     /// User that claimed.
     pub claimant: Pubkey,
     /// Amount of tokens to distribute.
+    pub amount: u64,
+}
+
+#[event]
+pub struct RemoveNewClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+}
+
+#[event]
+pub struct RemoveClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+    /// Amount of tokens to distribute that was removed.
     pub amount: u64,
 }

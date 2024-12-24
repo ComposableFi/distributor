@@ -19,7 +19,7 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = { workspace = true }
+anchor-lang = { workspace = true, features = ["init-if-needed"]}
 anchor-spl = { workspace = true }
 bytemuck = { workspace = true }
 jito-merkle-verify = { path = "../../verify" }
