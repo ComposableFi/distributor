@@ -1,5 +1,16 @@
 use anchor_lang::{event, prelude::*};
 
+#[event]
+pub struct AdminNewClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+
+    pub amount_unlocked: u64,
+    pub amount_locked: u64,
+}
+
 /// Emitted when a new claim is created.
 #[event]
 pub struct NewClaimEvent {
