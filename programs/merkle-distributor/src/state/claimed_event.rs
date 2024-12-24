@@ -37,3 +37,11 @@ pub struct ClaimedEvent {
     /// Amount of tokens to distribute.
     pub amount: u64,
 }
+
+#[event]
+pub struct RemoveNewClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+}

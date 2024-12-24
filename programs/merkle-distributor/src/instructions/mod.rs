@@ -4,6 +4,7 @@ pub use new_claim::*;
 pub use new_distributor::*;
 pub use set_admin::*;
 pub use set_clawback_receiver::*;
+pub use remove_new_claim::*;
 pub use admin_new_claim::*;
 pub use claim_new_claim::*;
 pub mod claim_locked;
@@ -12,6 +13,7 @@ pub mod new_claim;
 pub mod new_distributor;
 pub mod admin_new_claim;
 pub mod claim_new_claim;
+pub mod remove_new_claim;
 
 pub mod set_admin;
 pub mod set_clawback_receiver;
