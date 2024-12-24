@@ -20,6 +20,15 @@ pub struct NewClaimEvent {
     pub timestamp: i64,
 }
 
+/// Emitted when a new claim is created.
+#[event]
+pub struct ClaimNewClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+}
+
 /// Emitted when tokens are claimed.
 #[event]
 pub struct ClaimedEvent {

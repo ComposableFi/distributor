@@ -1,11 +1,8 @@
 use anchor_lang::{
-    context::Context, prelude::*, solana_program::hash::hashv, system_program::System, Accounts,
+    context::Context, prelude::*, system_program::System, Accounts,
     Key, Result,
 };
-use anchor_spl::{
-    token,
-    token::{Token, TokenAccount},
-};
+use anchor_spl::token::Token;
 
 use crate::{
     error::ErrorCode,

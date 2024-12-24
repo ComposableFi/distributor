@@ -88,6 +88,14 @@ pub mod merkle_distributor {
     }
 
     #[allow(clippy::result_large_err)]
+    pub fn claim_new_claim(
+        ctx: Context<ClaimNewClaim>,
+        _page_index: u8,
+    ) -> Result<()> {
+        handle_claim_new_claim(ctx)
+    }
+
+    #[allow(clippy::result_large_err)]
     pub fn admin_new_claim(
         ctx: Context<AdminNewClaim>,
         amount_unlocked: u64,
