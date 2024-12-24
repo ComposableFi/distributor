@@ -39,19 +39,16 @@ pub enum ErrorCode {
     TimestampsNotInFuture,
     #[msg("Airdrop Version Mismatch")]
     InvalidVersion,
-
+    #[msg("Nothing claim back")]
+    NothingClaimBack,
     #[msg("Max elements exceeded for vesting schedule")]
     MaxElementsExceededForVestingSchedule,
-
     #[msg("Claim already exists")]
     ClaimAlreadyExists,
-
     #[msg("Account validation failed for page account")]
     AccountValidationFailedForPageAccount,
-
     #[msg("Invalid remaining accounts length")]
     InvalidRemainingAccountsLength,
-
     #[msg("Claimant not found in page account")]
     ClaimantNotFoundInPageAccount,
 }

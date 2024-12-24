@@ -77,7 +77,7 @@ pub struct RemoveNewClaim<'info> {
 ///     3. Num nodes claimed is less than max_num_nodes
 ///     4. The merkle proof is valid
 #[allow(clippy::result_large_err)]
-pub fn handle_remove_new_claim(
+pub fn handle_admin_remove_new_claim(
     ctx: Context<RemoveNewClaim>,
     amount_unlocked: u64,
     amount_locked: u64,

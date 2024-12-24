@@ -45,3 +45,13 @@ pub struct RemoveNewClaimEvent {
     /// Timestamp.
     pub timestamp: i64,
 }
+
+#[event]
+pub struct RemoveClaimEvent {
+    /// User that claimed.
+    pub claimant: Pubkey,
+    /// Timestamp.
+    pub timestamp: i64,
+    /// Amount of tokens to distribute that was removed.
+    pub amount: u64,
+}
