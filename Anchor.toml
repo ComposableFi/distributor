@@ -1,33 +1,22 @@
 [toolchain]
 anchor_version = "0.29.0"
-solana_version = "1.16.9" # Solana version to use
 
 [features]
 seeds = true
+skip-lint = false
+
+[programs.devnet]
+merkle_distributor = "CdDCDhVL9LB4nZULev3hAdwrc1bcYuXCVEydP63kKfdJ"
 
 [registry]
 url = "https://api.apr.dev"
 
-[workspace]
-members = [
-    "programs/merkle-distributor",
-]
-
 [provider]
-cluster = "testnet"
-wallet = "payxNNNpXxeZMuqCPoiDxCvPRKamjq3mzdiTxHZxUhq.json"
+cluster = "Devnet"
+wallet = "/Users/mykyta/.config/solana/id.json"
 
-[programs.mainnet]
-merkle_distributor = "m1uqAm3yAagng3uqphvQ4rRAkRy17F4JX87pFemLBKv"
-
-[programs.devnet]
-merkle_distributor = "m1uqAm3yAagng3uqphvQ4rRAkRy17F4JX87pFemLBKv"
-
-[programs.testnet]
-merkle_distributor = "m1uqAm3yAagng3uqphvQ4rRAkRy17F4JX87pFemLBKv"
-
-[programs.localnet]
-merkle_distributor = "m1uqAm3yAagng3uqphvQ4rRAkRy17F4JX87pFemLBKv"
+[workspace]
+members = ["programs/merkle-distributor"]
 
 [scripts]
 test = "yarn mocha"
