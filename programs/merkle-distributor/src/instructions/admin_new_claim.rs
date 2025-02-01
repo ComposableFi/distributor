@@ -46,7 +46,7 @@ impl PageAccount {
     pub const LEN: usize = 8 + std::mem::size_of::<PageAccount>() + PageVestingItem::LEN * 200;
 }
 
-#[account]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct PageVestingItem {
     pub claimant: Pubkey,
     pub amount_unlocked: u64,
