@@ -6,7 +6,7 @@ seeds = true
 skip-lint = false
 
 [programs.devnet]
-merkle_distributor = "CdDCDhVL9LB4nZULev3hAdwrc1bcYuXCVEydP63kKfdJ"
+merkle_distributor = "6iPn4u8RCcVsNQ3yW2VeknuozKaNPhdhEHySbhCo6y2e"
 
 [registry]
 url = "https://api.apr.dev"

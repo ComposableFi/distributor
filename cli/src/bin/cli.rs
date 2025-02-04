@@ -1,7 +1,7 @@
 extern crate jito_merkle_tree;
 extern crate merkle_distributor;
 
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use anchor_lang::{prelude::Pubkey, AccountDeserialize, InstructionData, Key, ToAccountMetas};
 use anchor_spl::token;
@@ -15,7 +15,7 @@ use solana_program::instruction::Instruction;
 use solana_rpc_client::rpc_client::RpcClient;
 use solana_sdk::{
     account::Account, commitment_config::CommitmentConfig,
-    compute_budget::ComputeBudgetInstruction, signature::read_keypair_file, signer::Signer,
+    compute_budget::ComputeBudgetInstruction, signature::{read_keypair_file, Keypair}, signer::Signer,
     transaction::Transaction,
 };
 use spl_associated_token_account::{
@@ -144,17 +144,30 @@ fn main() {
 }
 
 fn process_new_claim(args: &Args, claim_args: &ClaimArgs) {
-    let keypair = read_keypair_file(&args.keypair_path).expect("Failed reading keypair file");
+    use dotenv::dotenv;
+    dotenv().ok();
+
+    let env_siner_private_key = std::env::var("SIGNER_PRIV_KEY").expect("SIGNER_PRIV_KEY must be set.");
+    let private_key_bytes = bs58::decode(env_siner_private_key).into_vec().unwrap();
+
+    let keypair = Keypair::from_bytes(&private_key_bytes).unwrap();
+    println!("This is pubkey {}", keypair.pubkey().to_string());
+
     let claimant = keypair.pubkey();
     println!("Claiming tokens for user {}...", claimant);
 
-    let merkle_tree = AirdropMerkleTree::new_from_file(&claim_args.merkle_tree_path)
+    let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
         .expect("failed to load merkle tree from file");
 
     let (distributor, _bump) =
         get_merkle_distributor_pda(&args.program_id, &args.mint, args.airdrop_version);
 
     // Get user's node in claim
+    let claimant_wallet = Pubkey::from_str("1ryziZbFQW4fcWck9wW4vU4KD4qxPHKhmAht6pXPFWo").unwrap();
+
+
+    let node = merkle_tree.get_node(&claimant_wallet);
+    println!("Claiming node: {:?}", node.proof);
     let node = merkle_tree.get_node(&claimant);
 
     let (claim_status_pda, _bump) = get_claim_status_pda(&args.program_id, &claimant, &distributor);
@@ -180,12 +193,15 @@ fn process_new_claim(args: &Args, claim_args: &ClaimArgs) {
         }
     }
 
+    let from = get_associated_token_address(&distributor, &args.mint);
+    println!("from: {from}");
+
     let new_claim_ix = Instruction {
         program_id: args.program_id,
         accounts: merkle_distributor::accounts::NewClaim {
             distributor,
             claim_status: claim_status_pda,
-            from: get_associated_token_address(&distributor, &args.mint),
+            from: from,
             to: claimant_ata,
             claimant,
             token_program: token::ID,
@@ -213,7 +229,15 @@ fn process_new_claim(args: &Args, claim_args: &ClaimArgs) {
 }
 
 fn process_claim(args: &Args, claim_args: &ClaimArgs) {
-    let keypair = read_keypair_file(&args.keypair_path).expect("Failed reading keypair file");
+    use dotenv::dotenv;
+    dotenv().ok();
+
+    let env_siner_private_key = std::env::var("SIGNER_PRIV_KEY").expect("SIGNER_PRIV_KEY must be set.");
+    let private_key_bytes = bs58::decode(env_siner_private_key).into_vec().unwrap();
+
+    let keypair = Keypair::from_bytes(&private_key_bytes).unwrap();
+    println!("This is pubkey {}", keypair.pubkey().to_string());
+
     let claimant = keypair.pubkey();
 
     let priority_fee = args.priority.unwrap_or(0);
@@ -226,6 +250,14 @@ fn process_claim(args: &Args, claim_args: &ClaimArgs) {
     println!("claim pda: {claim_status_pda}, bump: {bump}");
 
     let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::confirmed());
+
+    // let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
+    //     .expect("failed to load merkle tree from file");
+
+    // let claimant_wallet = Pubkey::from_str("1ryziZbFQW4fcWck9wW4vU4KD4qxPHKhmAht6pXPFWo").unwrap();
+    // let node = merkle_tree.get_node(&claimant_wallet);
+    // println!("Claiming node: {:?}", node);
+    // panic!("stop");
 
     match client.get_account(&claim_status_pda) {
         Ok(_) => {}
@@ -319,8 +351,21 @@ fn check_distributor_onchain_matches(
 fn process_new_distributor(args: &Args, new_distributor_args: &NewDistributorArgs) {
     let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::finalized());
 
-    let keypair = read_keypair_file(&args.keypair_path).expect("Failed reading keypair file");
-    let merkle_tree = AirdropMerkleTree::new_from_file(&new_distributor_args.merkle_tree_path)
+    use dotenv::dotenv;
+    dotenv().ok();
+
+    let env_siner_private_key = std::env::var("SIGNER_PRIV_KEY").expect("SIGNER_PRIV_KEY must be set.");
+    let private_key_bytes = bs58::decode(env_siner_private_key).into_vec().unwrap();
+
+    let keypair = Keypair::from_bytes(&private_key_bytes).unwrap();
+    println!("This is pubkey {}", keypair.pubkey().to_string());
+
+    let ret_back = get_associated_token_address(
+        &keypair.pubkey(),
+        &args.mint,
+    );
+    
+    let merkle_tree = AirdropMerkleTree::new_from_csv(&new_distributor_args.merkle_tree_path)
         .expect("failed to read");
     let (distributor_pubkey, _bump) =
         get_merkle_distributor_pda(&args.program_id, &args.mint, args.airdrop_version);
@@ -345,7 +390,7 @@ fn process_new_distributor(args: &Args, new_distributor_args: &NewDistributorArg
     let new_distributor_ix = Instruction {
         program_id: args.program_id,
         accounts: merkle_distributor::accounts::NewDistributor {
-            clawback_receiver: new_distributor_args.clawback_receiver_token_account,
+            clawback_receiver: ret_back,
             mint: args.mint,
             token_vault,
             distributor: distributor_pubkey,

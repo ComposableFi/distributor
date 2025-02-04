@@ -27,6 +27,7 @@ edition = "2021"
 publish = false
 
 [workspace.dependencies]
+dotenv = "0.15.0"
 anchor-lang = "0.28.0"
 anchor-spl = "0.28.0"
 axum = "0.6.2"

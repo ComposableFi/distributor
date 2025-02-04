@@ -13,3 +13,5 @@ solana-program = { workspace = true }
 solana-rpc-client = { workspace = true }
 solana-sdk = { workspace = true }
 spl-associated-token-account = { workspace = true }
+dotenv = { workspace = true }
+bs58 = { version = "0.5.0", features = ["alloc"] }
