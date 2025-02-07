@@ -30,7 +30,7 @@ security_txt! {
     source_code: "https://github.com/jito-foundation/distributor"
 }
 
-declare_id!("6iPn4u8RCcVsNQ3yW2VeknuozKaNPhdhEHySbhCo6y2e");
+declare_id!("Agwkm5QzMHKzPNRusJf2YXy1LCFWRkoySAPxExLtYQv9");
 
 #[program]
 pub mod merkle_distributor {
