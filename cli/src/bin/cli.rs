@@ -251,10 +251,10 @@ fn process_claim(args: &Args, claim_args: &ClaimArgs) {
 
     let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::confirmed());
 
-    // let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
-    //     .expect("failed to load merkle tree from file");
+    let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
+        .expect("failed to load merkle tree from file");
 
-    // let claimant_wallet = Pubkey::from_str("1ryziZbFQW4fcWck9wW4vU4KD4qxPHKhmAht6pXPFWo").unwrap();
+    // let claimant_wallet = Pubkey::from_str("AgekHHmTU2RsnTubhTC7neUsuJqxMWBjXweBh1HhGd2V").unwrap();
     // let node = merkle_tree.get_node(&claimant_wallet);
     // println!("Claiming node: {:?}", node);
     // panic!("stop");
