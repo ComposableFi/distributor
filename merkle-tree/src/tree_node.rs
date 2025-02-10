@@ -64,8 +64,8 @@ impl TreeNode {
 }
 
 /// Converts a ui amount to a token amount (with decimals)
-fn ui_amount_to_token_amount(amount: u64) -> u64 {
-    amount * 10u64.checked_pow(MINT_DECIMALS).unwrap()
+fn ui_amount_to_token_amount(amount: f64) -> u64 {
+    (amount * 10u64.checked_pow(MINT_DECIMALS).unwrap() as f64) as u64
 }
 
 impl From<CsvEntry> for TreeNode {
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_ui_amount_to_token_amount() {
-        let ui_amount = 5;
+        let ui_amount = 5f64;
         let token_amount = ui_amount_to_token_amount(ui_amount);
         assert_eq!(token_amount, 5_000_000_000);
     }

@@ -15,14 +15,14 @@ pub enum AirdropCategory {
 }
 
 /// Represents a single entry in a CSV
-#[derive(Debug, Clone, Eq, Hash, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CsvEntry {
     /// Pubkey of the claimant; will be responsible for signing the claim
     pub pubkey: String,
     /// amount unlocked, (ui amount)
-    pub amount_unlocked: u64,
+    pub amount_unlocked: f64,
     /// amount locked, (ui amount)
-    pub amount_locked: u64,
+    pub amount_locked: f64,
     /// Category
     pub category: AirdropCategory,
 }
@@ -57,8 +57,8 @@ mod tests {
             entries[0].pubkey,
             "4SX6nqv5VRLMoNfYM5phvHgcBNcBEwUEES4qPPjf1EqS"
         );
-        assert_eq!(entries[0].amount_unlocked, 1000);
-        assert_eq!(entries[0].amount_locked, 500);
+        assert_eq!(entries[0].amount_unlocked, 1000f64);
+        assert_eq!(entries[0].amount_locked, 500f64);
         assert_eq!(entries[0].category, AirdropCategory::Staker);
     }
 }
