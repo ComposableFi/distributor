@@ -138,7 +138,7 @@ impl AirdropMerkleTree {
                 return i.clone();
             }
         }
-
+        println!("{}", claimant);
         panic!("Claimant not found in tree");
     }
 

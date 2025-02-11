@@ -70,6 +70,7 @@ fn ui_amount_to_token_amount(amount: f64) -> u64 {
 
 impl From<CsvEntry> for TreeNode {
     fn from(entry: CsvEntry) -> Self {
+        println!("entry: {:?}", entry.pubkey.as_str());
         let mut node = Self {
             claimant: Pubkey::from_str(entry.pubkey.as_str()).unwrap(),
             proof: None,

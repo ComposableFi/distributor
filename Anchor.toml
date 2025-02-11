@@ -5,14 +5,14 @@ anchor_version = "0.29.0"
 seeds = true
 skip-lint = false
 
-[programs.devnet]
-merkle_distributor = "nHU2sptsUARgKih9UJnYLuAGgiUHA2wPyeu5vm8h3yW"
+[programs.mainnet]
+merkle_distributor = "4T5uFmTdHR9wC5x9vW9ywpqK4MhDMmPtaV2mzHBANGhM"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Devnet"
+cluster = "https://mainnet.helius-rpc.com/?api-key=40963904-fc44-47f3-bed3-f01a0047f70a"
 wallet = "/Users/mykyta/.config/solana/id.json"
 
 [workspace]

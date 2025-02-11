@@ -156,11 +156,16 @@ fn process_new_claim(args: &Args, claim_args: &ClaimArgs) {
     let claimant = keypair.pubkey();
     println!("Claiming tokens for user {}...", claimant);
 
+    let (distributor, _bump) =
+        get_merkle_distributor_pda(&args.program_id, &args.mint, args.airdrop_version);
+
+    let from = get_associated_token_address(&distributor, &args.mint);
+    println!("from: {from}");
+
     let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
         .expect("failed to load merkle tree from file");
 
-    let (distributor, _bump) =
-        get_merkle_distributor_pda(&args.program_id, &args.mint, args.airdrop_version);
+    
 
     // Get user's node in claim
     let claimant_wallet = Pubkey::from_str("1ryziZbFQW4fcWck9wW4vU4KD4qxPHKhmAht6pXPFWo").unwrap();
@@ -361,7 +366,7 @@ fn process_new_distributor(args: &Args, new_distributor_args: &NewDistributorArg
     println!("This is pubkey {}", keypair.pubkey().to_string());
 
     let ret_back = get_associated_token_address(
-        &keypair.pubkey(),
+        &new_distributor_args.clawback_receiver_token_account,
         &args.mint,
     );
     
@@ -386,7 +391,6 @@ fn process_new_distributor(args: &Args, new_distributor_args: &NewDistributorArg
     }
 
     println!("creating new distributor with args: {new_distributor_args:#?}");
-
     let new_distributor_ix = Instruction {
         program_id: args.program_id,
         accounts: merkle_distributor::accounts::NewDistributor {

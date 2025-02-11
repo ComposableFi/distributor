@@ -10,8 +10,8 @@ cargo run -- --mint 4dzPmLDFSpuaCcTUoQjw71Bq8u8RWgHJQcLS63Y8ZrZp \
 
 
 
-cargo run -- --mint 4dzPmLDFSpuaCcTUoQjw71Bq8u8RWgHJQcLS63Y8ZrZp \
-  --rpc-url https://api.devnet.solana.com \
-  --keypair-path /Users/mykyta/development/composable/mantis-staking-program/solana/merkle-tree/test_fixtures/test.json \
+cargo run -- --mint Mant1sZcb8x2YMZe7RdqSfStCj4YxjmQByNKyHpLJK9 \
+  --rpc-url "https://mainnet.helius-rpc.com/?api-key=40963904-fc44-47f3-bed3-f01a0047f70a" \
+  --keypair-path /Users/mykyta/development/composable/mantis-staking-program/solana/merkle-tree/test_fixtures/seed.csv \
   claim \
-  --merkle-tree-path /Users/mykyta/development/composable/mantis-staking-program/solana/merkle-tree/test_fixtures/test_csv.csv
+  --merkle-tree-path /Users/mykyta/development/composable/mantis-staking-program/solana/merkle-tree/test_fixtures/seed.csv
