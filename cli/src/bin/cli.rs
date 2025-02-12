@@ -63,6 +63,7 @@ pub enum Commands {
     /// Clawback tokens from merkle distributor
     #[clap(hide = true)]
     Clawback(ClawbackArgs),
+    ClawbackNow(ClawbackNowArgs),
     /// Create a Merkle tree, given a CSV of recipients
     CreateMerkleTree(CreateMerkleTreeArgs),
     SetAdmin(SetAdminArgs),
@@ -107,6 +108,12 @@ pub struct ClawbackArgs {
 }
 
 #[derive(Parser, Debug)]
+pub struct ClawbackNowArgs {
+    #[clap(long, env)]
+    pub amount: u64,
+}
+
+#[derive(Parser, Debug)]
 pub struct CreateMerkleTreeArgs {
     /// CSV path
     #[clap(long, env)]
@@ -124,6 +131,19 @@ pub struct SetAdminArgs {
 }
 
 fn main() {
+
+    // let mint = Pubkey::from_str("Mant1sZcb8x2YMZe7RdqSfStCj4YxjmQByNKyHpLJK9").unwrap();
+    // // let escrow = Pubkey::from_str("HnCv1EJJ2sMN55TUDMLGJgSRf4MKvorQn8s1QGdpTqZy").unwrap();
+    // // let escrow = Pubkey::from_str("57FXFvcgAYxvoWK7TyjtYjNx3sTG6vRFpoEUqs1Tj6Qu").unwrap();
+    // let programid = Pubkey::from_str("DSfM7SNVJhQBZAznaoJuR3ZKsvVnz7FHWxwR1yCEfUiV").unwrap();
+
+    // let (distributor, _bump) =
+    //     get_merkle_distributor_pda(&programid, &mint, 0);
+
+    // let from = get_associated_token_address(&distributor, &mint);
+    // println!("from: {from}");
+    // return;
+
     let args = Args::parse();
 
     match &args.command {
@@ -134,6 +154,7 @@ fn main() {
             process_claim(&args, claim_args);
         }
         Commands::Clawback(clawback_args) => process_clawback(&args, clawback_args),
+        Commands::ClawbackNow(clawback_args) => process_clawback_now(&args, clawback_args),
         Commands::CreateMerkleTree(merkle_tree_args) => {
             process_create_merkle_tree(merkle_tree_args);
         }
@@ -482,6 +503,62 @@ fn process_clawback(args: &Args, clawback_args: &ClawbackArgs) {
         &[clawback_ix],
         Some(&payer_keypair.pubkey()),
         &[&payer_keypair, &clawback_keypair],
+        client.get_latest_blockhash().unwrap(),
+    );
+
+    let signature = client
+        .send_and_confirm_transaction_with_spinner(&tx)
+        .unwrap();
+
+    println!("Successfully clawed back funds! signature: {signature:#?}");
+}
+
+fn process_clawback_now(args: &Args, clawback_args: &ClawbackNowArgs) {
+    use dotenv::dotenv;
+    dotenv().ok();
+
+    let env_siner_private_key = std::env::var("SIGNER_PRIV_KEY").expect("SIGNER_PRIV_KEY must be set.");
+    let private_key_bytes = bs58::decode(env_siner_private_key).into_vec().unwrap();
+
+    let keypair = Keypair::from_bytes(&private_key_bytes).unwrap();
+    println!("This is pubkey {}", keypair.pubkey().to_string());
+    // let payer_keypair = read_keypair_file(&args.keypair_path).expect("Failed reading keypair file");
+    // let clawback_keypair = read_keypair_file(&clawback_args.clawback_keypair_path)
+    //     .expect("Failed reading keypair file");
+
+    // let clawback_ata = get_associated_token_address(&clawback_keypair.pubkey(), &args.mint);
+    let clawback_ata = Pubkey::from_str("PYsq43ovMAvj3yuiF7jgfcfbCgASapELHKAQPDS6WfU").unwrap();
+    let clawback_ata = get_associated_token_address(&clawback_ata, &args.mint);
+
+
+    let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::confirmed());
+
+    let (distributor, _bump) =
+        get_merkle_distributor_pda(&args.program_id, &args.mint, args.airdrop_version);
+
+    let from = get_associated_token_address(&distributor, &args.mint);
+    println!("from: {from}");
+
+    let clawback_ix = Instruction {
+        program_id: args.program_id,
+        accounts: merkle_distributor::accounts::ClawbackNow {
+            distributor,
+            from,
+            to: clawback_ata,
+            claimant: keypair.pubkey(),
+            system_program: solana_program::system_program::ID,
+            token_program: token::ID,
+        }
+        .to_account_metas(None),
+        data: merkle_distributor::instruction::ClawbackNow {
+            amount: clawback_args.amount,
+        }.data(),
+    };
+
+    let tx = Transaction::new_signed_with_payer(
+        &[clawback_ix],
+        Some(&keypair.pubkey()),
+        &[&keypair, &keypair],
         client.get_latest_blockhash().unwrap(),
     );
 
