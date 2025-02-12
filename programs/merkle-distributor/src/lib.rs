@@ -30,7 +30,7 @@ security_txt! {
     source_code: "https://github.com/jito-foundation/distributor"
 }
 
-declare_id!("4T5uFmTdHR9wC5x9vW9ywpqK4MhDMmPtaV2mzHBANGhM");
+declare_id!("DSfM7SNVJhQBZAznaoJuR3ZKsvVnz7FHWxwR1yCEfUiV");
 
 #[program]
 pub mod merkle_distributor {
@@ -130,6 +130,11 @@ pub mod merkle_distributor {
     #[allow(clippy::result_large_err)]
     pub fn clawback(ctx: Context<Clawback>) -> Result<()> {
         handle_clawback(ctx)
+    }
+
+    #[allow(clippy::result_large_err)]
+    pub fn clawback_now(ctx: Context<ClawbackNow>, amount: u64) -> Result<()> {
+        handle_clawback_now(ctx, amount)
     }
 
     #[allow(clippy::result_large_err)]
