@@ -28,9 +28,8 @@ pub struct ClawbackNow<'info> {
     #[account(mut, address = distributor.clawback_receiver)]
     pub to: Account<'info, TokenAccount>,
 
-    /// Claimant account
-    /// Anyone can claw back the funds
-    pub claimant: Signer<'info>,
+    #[account(mut, address = distributor.admin @ ErrorCode::Unauthorized)]
+    pub admin: Signer<'info>,
 
     /// The [System] program.
     pub system_program: Program<'info, System>,
