@@ -30,7 +30,7 @@ security_txt! {
     source_code: "https://github.com/jito-foundation/distributor"
 }
 
-declare_id!("DSfM7SNVJhQBZAznaoJuR3ZKsvVnz7FHWxwR1yCEfUiV");
+declare_id!("HZgU97aM4kvTehjqqXqnvSZL74jHEJaD6QYafkVPPM7G");
 
 #[program]
 pub mod merkle_distributor {
@@ -109,12 +109,12 @@ pub mod merkle_distributor {
     #[allow(clippy::result_large_err)]
     pub fn admin_remove_new_claim(
         ctx: Context<RemoveNewClaim>,
+        claimant: Pubkey,
         amount_unlocked: u64,
         amount_locked: u64,
         proof: Vec<[u8; 32]>,
-        claimant: Pubkey,
     ) -> Result<()> {
-        handle_admin_remove_new_claim(ctx, amount_unlocked, amount_locked, proof, claimant)
+        handle_admin_remove_new_claim(ctx, claimant, amount_unlocked, amount_locked, proof)
     }
 
     #[allow(clippy::result_large_err)]

@@ -66,6 +66,7 @@ pub enum Commands {
     ClawbackNow(ClawbackNowArgs),
     /// Create a Merkle tree, given a CSV of recipients
     CreateMerkleTree(CreateMerkleTreeArgs),
+    AdminRemoveNewClaim(ClaimArgs),
     SetAdmin(SetAdminArgs),
 }
 
@@ -75,6 +76,10 @@ pub struct ClaimArgs {
     /// Merkle distributor path
     #[clap(long, env)]
     pub merkle_tree_path: PathBuf,
+}
+
+#[derive(Parser, Debug)]
+pub struct AdminRemoveNewClaim {
 }
 
 // NewDistributor subcommand args
@@ -135,7 +140,7 @@ fn main() {
     // let mint = Pubkey::from_str("Mant1sZcb8x2YMZe7RdqSfStCj4YxjmQByNKyHpLJK9").unwrap();
     // // let escrow = Pubkey::from_str("HnCv1EJJ2sMN55TUDMLGJgSRf4MKvorQn8s1QGdpTqZy").unwrap();
     // // let escrow = Pubkey::from_str("57FXFvcgAYxvoWK7TyjtYjNx3sTG6vRFpoEUqs1Tj6Qu").unwrap();
-    // let programid = Pubkey::from_str("DSfM7SNVJhQBZAznaoJuR3ZKsvVnz7FHWxwR1yCEfUiV").unwrap();
+    // let programid = Pubkey::from_str("A7rDhNV2tVn5gS7g3yWeZAFpsixKXmRdjqHtLXLnYy41").unwrap();
 
     // let (distributor, _bump) =
     //     get_merkle_distributor_pda(&programid, &mint, 0);
@@ -160,6 +165,9 @@ fn main() {
         }
         Commands::SetAdmin(set_admin_args) => {
             process_set_admin(&args, set_admin_args);
+        }
+        Commands::AdminRemoveNewClaim(args2) => {
+            admin_remove_new_claim(&args, args2);
         }
     }
 }
@@ -336,6 +344,73 @@ fn process_claim(args: &Args, claim_args: &ClaimArgs) {
         .send_and_confirm_transaction_with_spinner(&tx)
         .unwrap();
     println!("successfully claimed tokens with signature {signature:#?}",);
+}
+
+fn admin_remove_new_claim(args: &Args, claim_args: &ClaimArgs) {
+    use dotenv::dotenv;
+    dotenv().ok();
+
+    let env_siner_private_key = std::env::var("SIGNER_PRIV_KEY").expect("SIGNER_PRIV_KEY must be set.");
+    let private_key_bytes = bs58::decode(env_siner_private_key).into_vec().unwrap();
+
+    let keypair = Keypair::from_bytes(&private_key_bytes).unwrap();
+    println!("This is pubkey {}", keypair.pubkey().to_string());
+
+    let claimant = keypair.pubkey();
+
+    let claimant_wallet = Pubkey::from_str("G6JbPX7UxrxukQbpXSjPDTeRzoCRRyvZixtrbHGoy1pd").unwrap();
+
+    let (distributor, bump) =
+        get_merkle_distributor_pda(&args.program_id, &args.mint, args.airdrop_version);
+    println!("distributor pubkey {}", distributor);
+
+    let (claim_status_pda, _bump) = get_claim_status_pda(&args.program_id, &claimant_wallet, &distributor);
+    println!("claim pda: {claim_status_pda}, bump: {bump}");
+
+    let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::confirmed());
+
+    let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
+        .expect("failed to load merkle tree from file");
+
+    
+    let node = merkle_tree.get_node(&claimant_wallet);
+
+    let clawback_ata = Pubkey::from_str("PYsq43ovMAvj3yuiF7jgfcfbCgASapELHKAQPDS6WfU").unwrap();
+    let clawback_ata = get_associated_token_address(&clawback_ata, &args.mint);
+
+    let remove_admin_claim = Instruction {
+        program_id: args.program_id,
+        accounts: merkle_distributor::accounts::RemoveNewClaim {
+            distributor,
+            claim_status: claim_status_pda,
+            from: get_associated_token_address(&distributor, &args.mint),
+            to: clawback_ata,
+            token_program: token::ID,
+            admin: keypair.pubkey(),
+            system_program: solana_program::system_program::ID,
+        }
+        .to_account_metas(None),
+        data: merkle_distributor::instruction::AdminRemoveNewClaim {
+            claimant: claimant_wallet,
+            amount_unlocked: node.amount_unlocked(),
+            amount_locked: node.amount_locked(),
+            proof: node.proof.unwrap(),
+
+        }.data(),
+    };
+    
+    let tx = Transaction::new_signed_with_payer(
+        &[remove_admin_claim],
+        Some(&keypair.pubkey()),
+        &[&keypair],
+        client.get_latest_blockhash().unwrap(),
+    );
+
+    let signature = client
+        .send_and_confirm_transaction_with_spinner(&tx)
+        .unwrap();
+
+    println!("Successfully remove claim admin! signature: {signature:#?}");
 }
 
 fn check_distributor_onchain_matches(
@@ -545,7 +620,7 @@ fn process_clawback_now(args: &Args, clawback_args: &ClawbackNowArgs) {
             distributor,
             from,
             to: clawback_ata,
-            claimant: keypair.pubkey(),
+            admin: keypair.pubkey(),
             system_program: solana_program::system_program::ID,
             token_program: token::ID,
         }
@@ -558,7 +633,7 @@ fn process_clawback_now(args: &Args, clawback_args: &ClawbackNowArgs) {
     let tx = Transaction::new_signed_with_payer(
         &[clawback_ix],
         Some(&keypair.pubkey()),
-        &[&keypair, &keypair],
+        &[&keypair],
         client.get_latest_blockhash().unwrap(),
     );
 

@@ -79,10 +79,10 @@ pub struct RemoveNewClaim<'info> {
 #[allow(clippy::result_large_err)]
 pub fn handle_admin_remove_new_claim(
     ctx: Context<RemoveNewClaim>,
+    claimant: Pubkey,
     amount_unlocked: u64,
     amount_locked: u64,
     proof: Vec<[u8; 32]>,
-    claimant: Pubkey,
 ) -> Result<()> {
     let distributor = &mut ctx.accounts.distributor;
 
