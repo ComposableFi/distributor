@@ -21,6 +21,7 @@ use solana_sdk::{
 use spl_associated_token_account::{
     get_associated_token_address, instruction::create_associated_token_account,
 };
+use merkle_distributor::instructions::PAGE_SEED;
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -67,6 +68,7 @@ pub enum Commands {
     /// Create a Merkle tree, given a CSV of recipients
     CreateMerkleTree(CreateMerkleTreeArgs),
     AdminRemoveNewClaim(ClaimArgs),
+    AdminAddNewClaim(ClaimArgs),
     SetAdmin(SetAdminArgs),
 }
 
@@ -169,6 +171,9 @@ fn main() {
         Commands::AdminRemoveNewClaim(args2) => {
             admin_remove_new_claim(&args, args2);
         }
+        Commands::AdminAddNewClaim(args2) => {
+            admin_add_new_claim(&args, args2);
+        }
     }
 }
 
@@ -193,8 +198,6 @@ fn process_new_claim(args: &Args, claim_args: &ClaimArgs) {
 
     let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
         .expect("failed to load merkle tree from file");
-
-    
 
     // Get user's node in claim
     let claimant_wallet = Pubkey::from_str("1ryziZbFQW4fcWck9wW4vU4KD4qxPHKhmAht6pXPFWo").unwrap();
@@ -372,7 +375,7 @@ fn admin_remove_new_claim(args: &Args, claim_args: &ClaimArgs) {
     let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
         .expect("failed to load merkle tree from file");
 
-    
+
     let node = merkle_tree.get_node(&claimant_wallet);
 
     let clawback_ata = Pubkey::from_str("PYsq43ovMAvj3yuiF7jgfcfbCgASapELHKAQPDS6WfU").unwrap();
@@ -398,7 +401,7 @@ fn admin_remove_new_claim(args: &Args, claim_args: &ClaimArgs) {
 
         }.data(),
     };
-    
+
     let tx = Transaction::new_signed_with_payer(
         &[remove_admin_claim],
         Some(&keypair.pubkey()),
@@ -411,6 +414,70 @@ fn admin_remove_new_claim(args: &Args, claim_args: &ClaimArgs) {
         .unwrap();
 
     println!("Successfully remove claim admin! signature: {signature:#?}");
+}
+
+fn admin_add_new_claim(args: &Args, claim_args: &ClaimArgs) {
+    use dotenv::dotenv;
+    dotenv().ok();
+
+    let env_siner_private_key = std::env::var("SIGNER_PRIV_KEY").expect("SIGNER_PRIV_KEY must be set.");
+    let private_key_bytes = bs58::decode(env_siner_private_key).into_vec().unwrap();
+
+    let keypair = Keypair::from_bytes(&private_key_bytes).unwrap();
+    println!("This is pubkey {}", keypair.pubkey().to_string());
+
+    let claimant_wallet = Pubkey::from_str("G6JbPX7UxrxukQbpXSjPDTeRzoCRRyvZixtrbHGoy1pd").unwrap();
+    let page_index = 0;
+
+    let (distributor, bump) =
+        get_merkle_distributor_pda(&args.program_id, &args.mint, args.airdrop_version);
+    println!("distributor pubkey {}", distributor);
+
+    let (claim_status_pda, _bump) = get_claim_status_pda(&args.program_id, &claimant_wallet, &distributor);
+    println!("claim pda: {claim_status_pda}, bump: {bump}");
+
+    let client = RpcClient::new_with_commitment(&args.rpc_url, CommitmentConfig::confirmed());
+
+    let merkle_tree = AirdropMerkleTree::new_from_csv(&claim_args.merkle_tree_path)
+        .expect("failed to load merkle tree from file");
+
+    let node = merkle_tree.get_node(&claimant_wallet);
+
+    // Derive the page account using the same seeds and program ID
+    let (page_account_state_pubkey, bump) = Pubkey::find_program_address(
+        &[PAGE_SEED, &[page_index]],
+        &args.program_id,
+    );
+    let remove_admin_claim = Instruction {
+        program_id: args.program_id,
+        accounts: merkle_distributor::accounts::AdminNewClaim {
+            distributor,
+            token_program: token::ID,
+            admin: keypair.pubkey(),
+            system_program: solana_program::system_program::ID,
+            page_account_state: page_account_state_pubkey,
+        }
+        .to_account_metas(None),
+        data: merkle_distributor::instruction::AdminNewClaim {
+            claimant: claimant_wallet,
+            amount_unlocked: node.amount_unlocked(),
+            amount_locked: node.amount_locked(),
+            page_index,
+        }.data(),
+    };
+
+    let tx = Transaction::new_signed_with_payer(
+        &[remove_admin_claim],
+        Some(&keypair.pubkey()),
+        &[&keypair],
+        client.get_latest_blockhash().unwrap(),
+    );
+
+    let signature = client
+        .send_and_confirm_transaction_with_spinner(&tx)
+        .unwrap();
+
+    println!("Successfully added new claim admin! signature: {signature:#?}");
 }
 
 fn check_distributor_onchain_matches(
@@ -465,7 +532,7 @@ fn process_new_distributor(args: &Args, new_distributor_args: &NewDistributorArg
         &new_distributor_args.clawback_receiver_token_account,
         &args.mint,
     );
-    
+
     let merkle_tree = AirdropMerkleTree::new_from_csv(&new_distributor_args.merkle_tree_path)
         .expect("failed to read");
     let (distributor_pubkey, _bump) =
