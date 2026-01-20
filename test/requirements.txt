@@ -6,7 +6,7 @@ asttokens==2.4.1
 attrs==23.1.0
 autoflake==2.2.1
 based58==0.1.1
-black==23.11.0
+black==24.3.0
 borsh-construct==0.1.0
 cachetools==4.2.4
 certifi==2023.7.22
